@@ -11,9 +11,12 @@
 <script lang="ts">
 import Vue from 'vue'
 import SettingsOptions from './SettingsOptions.vue'
-import { randomSeed, generateGrid, GenerateGridOptions } from '../generator'
 
 const generator = import('wasm-planet-generator')
+const randomSeed = () =>
+  Math.random()
+    .toString(36)
+    .substr(7)
 
 export default Vue.extend({
   name: 'Settings',
@@ -37,12 +40,13 @@ export default Vue.extend({
         height: 0,
         space: 30,
         chaos: 0.5
-      } as GenerateGridOptions
+      }
     }
   },
   methods: {
     async generate() {
       this.generating = true
+      const start = window.performance.now()
       const grid = await generator.then(wasm =>
         wasm.generateGrid(
           this.options.seed,
@@ -52,18 +56,13 @@ export default Vue.extend({
           this.options.chaos
         )
       )
+      const end = window.performance.now()
       this.generating = false
       this.$emit('generated', grid)
+      console.log('Generated in ', end - start, 'ms')
     }
   },
   watch: {
-    options: {
-      immediate: true,
-      deep: true,
-      handler() {
-        this.generate()
-      }
-    },
     height: {
       immediate: true,
       handler(height) {

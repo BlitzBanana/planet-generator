@@ -6,31 +6,38 @@ extern crate voronoi;
 extern crate console_error_panic_hook;
 
 use wasm_bindgen::prelude::*;
-use rand::Rng;
 use std::panic;
 use std::convert::From;
+use rand::{Rng, SeedableRng, rngs::StdRng};
 
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[derive(Serialize)]
+// API methods
+#[wasm_bindgen(js_name = generateGrid)]
+pub fn _generate_grid(seed: String, width: f64, height: f64, spacing: f64, chaos: f64) -> JsValue {
+  panic::set_hook(Box::new(console_error_panic_hook::hook));
+  let grid = generate_grid(seed, width, height, spacing, chaos);
+  JsValue::from_serde(&grid).unwrap()
+}
+
+
+// API types
+#[derive(Clone, Serialize)]
 pub struct Point(f64, f64);
 
-impl From<Point> for delaunator::Point {
-  fn from(point: Point) -> Self {
+impl From<&Point> for delaunator::Point {
+  fn from(point: &Point) -> Self {
     delaunator::Point { x: point.0, y: point.1 }
   }
 }
 
 #[derive(Serialize)]
-pub struct Triangle(Point, Point, Point);
+pub struct Triangle(usize, usize, usize);
 
 #[derive(Serialize)]
 pub struct Grid {
   pub points: Vec<Point>,
   pub triangles: Vec<Triangle>,
-  pub polygons: Vec<Vec<Point>>
+  pub polygons: Vec<Vec<usize>>
 }
 
 fn generate_points(width: f64, height: f64, spacing: f64) -> Vec<Point> {
@@ -49,14 +56,26 @@ fn generate_points(width: f64, height: f64, spacing: f64) -> Vec<Point> {
   points
 }
 
-fn perturb_points(_seed: String, points: Vec<Point>, spacing: f64, chaos: f64) -> Vec<Point> {
-  let mut rng = rand::thread_rng();
+fn rand_from_seed(seed: String) -> StdRng {
+  let mut value: u64 = 0;
+  
+  for i in 0..seed.len() {
+    value += u64::pow(27, 256_u32 - i as u32 - 1_u32) * (1 + seed.as_bytes()[i] as u64)
+  }
+
+  let rand: StdRng = SeedableRng::seed_from_u64(value);
+
+  rand
+}
+
+fn perturb_points(seed: String, points: Vec<Point>, spacing: f64, chaos: f64) -> Vec<Point> {
+  let mut random = rand_from_seed(seed);
 
   points
     .iter()
     .map(|point| Point (
-      perturb_point_coord(point.0, spacing, chaos, rng.gen::<f64>()),
-      perturb_point_coord(point.1, spacing, chaos, rng.gen::<f64>())
+      perturb_point_coord(point.0, spacing, chaos, random.gen::<f64>()),
+      perturb_point_coord(point.1, spacing, chaos, random.gen::<f64>())
     ))
     .collect::<Vec<Point>>()
 }
@@ -73,32 +92,15 @@ fn delaunay(points: &Vec<Point>) -> Vec<Triangle> {
     .map(|p| delaunator::Point::from(p))
     .collect::<Vec<delaunator::Point>>();
   let result = delaunator::triangulate(&delaunay_points).unwrap();
-  let mut chunks = result.triangles.chunks_exact(3);
-  let mut triangles = Vec::new();
-
-  loop {
-    let current = chunks.next();
-    if current == None {
-      break;
-    }
-    let chunk = current.unwrap();
-    let p1x = points[chunk[0]].0;
-    let p1y = points[chunk[0]].1;
-    let p2x = points[chunk[1]].0;
-    let p2y = points[chunk[1]].1;
-    let p3x = points[chunk[2]].0;
-    let p3y = points[chunk[2]].1;
-    triangles.push(Triangle(
-      Point(p1x, p1y),
-      Point(p2x, p2y),
-      Point(p3x, p3y)
-    ))
-  }
+  let triangles = result.triangles
+    .chunks_exact(3)
+    .map(|chunk| Triangle(chunk[0], chunk[1], chunk[2]))
+    .collect::<Vec<Triangle>>();
 
   triangles
 }
 
-fn voronoi(_points: &Vec<Point>) -> Vec<Vec<Point>> {
+fn voronoi(_points: &Vec<Point>) -> Vec<Vec<usize>> {
   vec![]
 }
 
@@ -111,11 +113,4 @@ fn generate_grid(seed: String, width: f64, height: f64, spacing: f64, chaos: f64
   let polygons = voronoi(&points);
 
   Grid { points, triangles, polygons }
-}
-
-#[wasm_bindgen(js_name = generateGrid)]
-pub fn _generate_grid(seed: String, width: f64, height: f64, spacing: f64, chaos: f64) -> JsValue {
-  let grid = generate_grid(seed, width, height, spacing, chaos);
-
-  JsValue::from_serde(&grid).unwrap()
 }

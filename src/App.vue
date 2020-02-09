@@ -18,7 +18,6 @@
 import Vue from 'vue'
 import Settings from './components/Settings.vue'
 import Renderer from './components/Renderer.vue'
-import { Grid } from './generator'
 
 export default Vue.extend({
   name: 'App',
@@ -27,7 +26,7 @@ export default Vue.extend({
     Renderer
   },
   data: () => ({
-    grid: null as Grid | null,
+    grid: null,
     width: 0,
     height: 0
   }),

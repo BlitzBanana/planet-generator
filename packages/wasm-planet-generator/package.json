@@ -1,0 +1,11 @@
+{
+  "name": "wasm-planet-generator",
+  "version": "1.0.0",
+  "main": "./pkg/wasm_planet_generator.js",
+  "types": "./pkg/wasm_planet_generator.d.ts",
+  "author": "Victor Rebiard--Crépin",
+  "license": "MIT",
+  "scripts": {
+    "build": "wasm-pack build"
+  }
+}

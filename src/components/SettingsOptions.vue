@@ -6,6 +6,7 @@
           <v-text-field
             :value="value.seed"
             @input="seed => input({ seed })"
+            @click:append="randomizeSeed"
             label="Seed"
             append-icon="mdi-seed"
             required
@@ -55,7 +56,11 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { GenerateGridOptions } from '../generator'
+
+const randomSeed = () =>
+  Math.random()
+    .toString(36)
+    .substr(7)
 
 export default Vue.extend({
   name: 'SettingsOptions',
@@ -66,13 +71,18 @@ export default Vue.extend({
     }
   },
   methods: {
-    input(changes: Partial<GenerateGridOptions>) {
+    randomizeSeed() {
+      this.input({
+        seed: randomSeed()
+      })
+    },
+    input(changes: any) {
       this.apply({
         ...this.value,
         ...changes
       })
     },
-    apply(options: GenerateGridOptions) {
+    apply(options: any) {
       this.$emit('input', options)
     }
   }

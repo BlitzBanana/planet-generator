@@ -5,10 +5,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import * as PIXI from 'pixi.js'
-
-type Point = [number, number]
-type Triangle = [Point, Point, Point]
-type Polygon = Point[]
+import { Point, Triangle, Polygon, Grid } from '../generator'
 
 export default Vue.extend({
   name: 'Renderer',
@@ -25,17 +22,33 @@ export default Vue.extend({
       graphics: null as PIXI.Graphics | null
     }
   },
+  computed: {
+    _grid(): Grid | null {
+      return this.grid ? this.grid as Grid : null
+    }
+  },
   methods: {
     render() {
       if (!this.container) return
       if (!this.app) return
       if (!this.graphics) return
-      if (!this.grid) return
+      if (!this._grid) return
+
+      const { points, triangles, polygons } = this._grid
 
       this.graphics.clear()
-      this.grid.points.map((p: Point) => this.renderPoint(p))
-      this.grid.triangles.map((t: Triangle) => this.renderTriangle(t))
-      this.grid.polygons.map((p: Polygon) => this.renderPolygon(p))
+      
+      points.map((point: Point) => this.renderPoint(point))
+      triangles.map((triangle: Triangle) => {
+        return this.renderTriangle([
+          points[triangle[0]],
+          points[triangle[1]],
+          points[triangle[2]]
+        ])
+      })
+      polygons.map((polygon: Polygon) => {
+        return this.renderPolygon(polygon.map(i => points[i]))
+      })
     },
     renderPoint(point: Point) {
       if (!this.graphics) return
@@ -43,23 +56,24 @@ export default Vue.extend({
       const [x, y] = point
 
       this.graphics.lineStyle(0)
-      this.graphics.beginFill(0xb40135, 1)
-      this.graphics.drawCircle(x, y, 1)
+      this.graphics.beginFill(0xb40135, 0.8)
+      this.graphics.drawCircle(x, y, 2)
       this.graphics.endFill()
     },
-    renderTriangle(triangle: Triangle) {
+    renderTriangle(triangle: [Point, Point, Point]) {
       if (!this.graphics) return
 
-      const [first, second, third] = triangle
+      const [[x1, y1], [x2, y2], [x3, y3]] = triangle
 
-      this.graphics.lineStyle(1, 0xb40135)
-      this.graphics.moveTo(first[0], first[1])
-      this.graphics.lineTo(second[0], second[1])
-      this.graphics.lineTo(third[0], third[1])
+      this.graphics.lineStyle(1, 0xb40135, 0.2)
+      this.graphics.moveTo(x1, y1)
+      this.graphics.lineTo(x2, y2)
+      this.graphics.lineTo(x3, y3)
       this.graphics.closePath()
     },
-    renderPolygon(polygon: Polygon) {
+    renderPolygon(polygon: Point[]) {
       if (!this.graphics) return
+      if (polygon.length < 3) return
 
       const [first, ...points] = polygon
 
