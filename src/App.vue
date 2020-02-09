@@ -9,7 +9,7 @@
     </v-navigation-drawer>
 
     <v-content>
-      <Renderer ref="renderer" v-if="grid" :grid="grid" />
+      <Renderer ref="renderer" :grid="grid" />
     </v-content>
   </v-app>
 </template>
@@ -31,15 +31,19 @@ export default Vue.extend({
     width: 0,
     height: 0
   }),
+  methods: {
+    handleResize() {
+      const renderer = this.$refs.renderer as Vue
+      this.width = renderer.$el.clientWidth
+      this.height = renderer.$el.clientHeight
+    }
+  },
   created() {
     this.$vuetify.theme.dark = true
   },
   mounted() {
-    Vue.nextTick(() => {
-      const renderer = this.$refs.renderer as Vue
-      this.width = renderer.$el.clientWidth
-      this.height = renderer.$el.clientHeight
-    })
+    Vue.nextTick(() => this.handleResize())
+    window.onresize = () => this.handleResize()
   }
 })
 </script>

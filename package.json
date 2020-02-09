@@ -19,7 +19,8 @@
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.2",
     "vue-property-decorator": "^8.3.0",
-    "vuetify": "^2.1.0"
+    "vuetify": "^2.1.0",
+    "wasm-planet-generator": "file:./pkg/wasm-planet-generator/pkg"
   },
   "devDependencies": {
     "@types/d3-delaunay": "^4.1.0",

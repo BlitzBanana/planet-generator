@@ -13,6 +13,8 @@ import Vue from 'vue'
 import SettingsOptions from './SettingsOptions.vue'
 import { randomSeed, generateGrid, GenerateGridOptions } from '../generator'
 
+const generator = import('wasm-planet-generator')
+
 export default Vue.extend({
   name: 'Settings',
   components: { SettingsOptions },
@@ -39,11 +41,19 @@ export default Vue.extend({
     }
   },
   methods: {
-    generate() {
+    async generate() {
       this.generating = true
-      const planet = generateGrid(this.options)
+      const grid = await generator.then(wasm =>
+        wasm.generateGrid(
+          this.options.seed,
+          this.options.width,
+          this.options.height,
+          this.options.space,
+          this.options.chaos
+        )
+      )
       this.generating = false
-      this.$emit('generated', planet)
+      this.$emit('generated', grid)
     }
   },
   watch: {

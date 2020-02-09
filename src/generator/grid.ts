@@ -18,7 +18,7 @@ const randomPoints = (
   return Array(countW)
     .fill(0)
     .map((_, x) => {
-      return Array(countH - 1)
+      return Array(countH)
         .fill(0)
         .map((_, y) => {
           return [x * space + space, y * space + space] as [number, number]
