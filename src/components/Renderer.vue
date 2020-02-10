@@ -5,7 +5,61 @@
 <script lang="ts">
 import Vue from 'vue'
 import * as PIXI from 'pixi.js'
-import { Point, Triangle, Polygon, Grid } from '../generator'
+import { Point, Grid } from '../generator'
+
+const toChunks = <T extends unknown>(array: T[], size: number): T[][] => {
+  const count = Math.ceil(array.length / size)
+  return Array(count)
+    .fill(0)
+    .map((_, i) => i * size)
+    .map(start => array.slice(start, start + size))
+}
+
+enum Colors {
+  SEA = 0x223f6b,
+  SEA_LOW = 0x69c0b8,
+  SAND = 0xffdc73,
+  GRASS = 0x09af12,
+  ROCK = 0xaaaaaa,
+  SNOW = 0xf9fafc
+}
+
+const getColor = (elevation: number): number => {
+  if (elevation < -0.3) return Colors.SEA
+  if (elevation < 0) return Colors.SEA_LOW
+  if (elevation < 0.03) return Colors.SAND
+  if (elevation < 0.22) return Colors.GRASS
+  if (elevation < 0.30) return Colors.ROCK
+  return Colors.SNOW
+}
+
+interface GraphicsPool {
+  clear: () => void,
+  reset: () => void,
+  using: (fn: (g: PIXI.Graphics) => void) => void
+}
+
+const graphicsPool = (container: PIXI.Container, size = 10, limit = 10000): GraphicsPool => {
+  let pool: PIXI.Graphics[] = []
+  let usage = 0
+
+  const clear = () => pool.map(g => g.clear())
+  const reset = () => {
+    usage = 0
+    pool.map(g => g.destroy())
+    pool = Array(size).fill(0).map(() => new PIXI.Graphics())
+    pool.map(g => container.addChild(g))
+  }
+  const using = (fn: (g: PIXI.Graphics) => void) => {
+    const i = Math.floor(++usage / limit)
+    const exhausted = i >= size
+    if (exhausted) reset()
+    if (usage % limit === 0) console.log('graphics_pool', { usage })
+    return fn(pool[exhausted ? 0 : i])
+  }
+  reset()
+  return { clear, reset, using }
+}
 
 export default Vue.extend({
   name: 'Renderer',
@@ -19,12 +73,12 @@ export default Vue.extend({
     return {
       container: null as Element | null,
       app: null as PIXI.Application | null,
-      graphics: null as PIXI.Graphics | null
+      graphics: null as GraphicsPool | null
     }
   },
   computed: {
     _grid(): Grid | null {
-      return this.grid ? this.grid as Grid : null
+      return this.grid ? (this.grid as Grid) : null
     }
   },
   methods: {
@@ -34,57 +88,64 @@ export default Vue.extend({
       if (!this.graphics) return
       if (!this._grid) return
 
-      const { points, triangles, polygons } = this._grid
+      const { points, elevation, triangulation, cells } = this._grid
 
       this.graphics.clear()
-      
-      points.map((point: Point) => this.renderPoint(point))
-      triangles.map((triangle: Triangle) => {
-        return this.renderTriangle([
-          points[triangle[0]],
-          points[triangle[1]],
-          points[triangle[2]]
-        ])
-      })
-      polygons.map((polygon: Polygon) => {
-        return this.renderPolygon(polygon.map(i => points[i]))
-      })
-    },
-    renderPoint(point: Point) {
-      if (!this.graphics) return
 
-      const [x, y] = point
-
-      this.graphics.lineStyle(0)
-      this.graphics.beginFill(0xb40135, 0.8)
-      this.graphics.drawCircle(x, y, 2)
-      this.graphics.endFill()
-    },
-    renderTriangle(triangle: [Point, Point, Point]) {
-      if (!this.graphics) return
-
-      const [[x1, y1], [x2, y2], [x3, y3]] = triangle
-
-      this.graphics.lineStyle(1, 0xb40135, 0.2)
-      this.graphics.moveTo(x1, y1)
-      this.graphics.lineTo(x2, y2)
-      this.graphics.lineTo(x3, y3)
-      this.graphics.closePath()
-    },
-    renderPolygon(polygon: Point[]) {
-      if (!this.graphics) return
-      if (polygon.length < 3) return
-
-      const [first, ...points] = polygon
-
-      this.graphics.lineStyle(1, 0xb40135)
-      this.graphics.moveTo(first[0], first[1])
-
-      for (const [x, y] of points) {
-        this.graphics.lineTo(x, y)
+      for (const index of points.keys()) {
+        this.renderPoint(this.graphics, points[index], elevation[index])
       }
 
-      this.graphics.closePath()
+      // for (const [i1, i2, i3] of toChunks(triangulation.triangles, 3)) {
+      //   this.renderTriangle(this.graphics, [
+      //     points[i1],
+      //     points[i2],
+      //     points[i3]
+      //   ])
+      // }
+
+      for (const index of cells.keys()) {
+        this.renderCell(this.graphics, cells[index], elevation[index])
+      }
+    },
+    renderPoint(graphics: GraphicsPool, point: Point, elevation: number) {
+      if (!graphics) return
+      if (!point) return
+
+      const [x, y] = point
+      const color = getColor(elevation)
+
+      graphics.using(g => {
+        g.lineStyle(0)
+        g.beginFill(color, 1)
+        g.drawCircle(x, y, 2)
+        g.endFill()
+      })
+    },
+    renderTriangle(graphics: GraphicsPool, triangle: [Point, Point, Point]) {
+      if (!graphics) return
+      if (!triangle) return
+
+      const flatPoints: number[] = triangle.flat()
+
+      graphics.using(g => {
+        g.lineStyle(1, 0xb40135, 0.1)
+        g.drawPolygon(flatPoints)
+      })
+    },
+    renderCell(graphics: GraphicsPool, cell: Point[], elevation: number) {
+      if (!graphics) return
+      if (cell.length < 3) return
+
+      const flatPoints: number[] = cell.flat()
+      const color = getColor(elevation)
+
+      graphics.using(g => {
+        g.beginFill(color)
+        g.lineStyle(1, color, 1)
+        g.drawPolygon(flatPoints)
+        g.endFill()
+      })
     }
   },
   mounted() {
@@ -93,12 +154,11 @@ export default Vue.extend({
       antialias: true,
       width: container.clientWidth,
       height: container.clientHeight,
-      backgroundColor: 0xffffff
+      backgroundColor: 0x0000
     }))
-    const graphics = (this.graphics = new PIXI.Graphics())
 
+    this.graphics = graphicsPool(app.stage, 50, 1000)
     container.appendChild(app.view)
-    app.stage.addChild(graphics)
   },
   watch: {
     grid: {

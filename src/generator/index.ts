@@ -3,16 +3,15 @@ const generator = import('wasm-planet-generator')
 // Represents two map coords
 export type Point = [number, number]
 
-// Represents three points indexes
-export type Triangle = [number, number, number]
-
-// Represents multiple points indexes
-export type Polygon = number[]
-
 export interface Grid {
   points: Point[]
-  triangles: Triangle[]
-  polygons: Polygon[]
+  elevation: number[]
+  cells: Point[][]
+  triangulation: {
+    triangles: number[],
+    halfedges: number[],
+    hull: number[]
+  }
 }
 
 export interface GenerateOptions {
@@ -24,8 +23,8 @@ export interface GenerateOptions {
 }
 
 export const generate = async (options: GenerateOptions): Promise<Grid> => {
-  return generator
-    .then(wasm =>
+  return generator.then(
+    wasm =>
       wasm.generateGrid(
         options.seed,
         options.width,
@@ -33,11 +32,5 @@ export const generate = async (options: GenerateOptions): Promise<Grid> => {
         options.space,
         options.chaos
       ) as Grid
-    )
-}
-
-export class Utils {
-  static arePointsAdjacent(grid: Grid, a: number, b: number): boolean {
-    return grid.triangles.some(triangle => triangle.includes(a) && triangle.includes(b))
-  }
+  )
 }

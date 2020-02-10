@@ -11,6 +11,8 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
+wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
+
 serde = "^1.0.59"
 serde_derive = "^1.0.59"
 
@@ -18,13 +20,9 @@ rand = "^0.7.3"
 getrandom = { version = "*", features = ["wasm-bindgen"] }
 
 delaunator = "0.2.0"
-voronoi = "0.1.4"
+noise = "0.6.0"
 
 console_error_panic_hook = { version = "0.1.1", optional = true }
-
-[dependencies.wasm-bindgen]
-version = "^0.2"
-features = ["serde-serialize"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.2"
