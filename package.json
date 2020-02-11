@@ -13,7 +13,6 @@
     "core-js": "^3.6.4",
     "d3-delaunay": "^5.2.1",
     "material-design-icons-iconfont": "^5.0.1",
-    "pixi.js": "^5.2.1",
     "roboto-fontface": "*",
     "seedrandom": "^3.0.5",
     "vue": "^2.6.11",

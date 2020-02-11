@@ -1,63 +1,30 @@
 <template>
-  <v-container ref="container" class="pa-0" fill-height fluid></v-container>
+  <v-container ref="container" class="pa-0" fill-height fluid>
+    <canvas ref="canvas" />
+  </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
-import * as PIXI from 'pixi.js'
 import { Delaunay } from 'd3-delaunay'
 import { Point, Grid } from '../generator'
 
 enum Colors {
-  SEA = 0x223f6b,
-  SEA_LOW = 0x69c0b8,
-  SAND = 0xffdc73,
-  GRASS = 0x09af12,
-  ROCK = 0xaaaaaa,
-  SNOW = 0xf9fafc
+  SEA = '#223f6b',
+  SEA_LOW = '#69c0b8',
+  SAND = '#ffdc73',
+  GRASS = '#09af12',
+  ROCK = '#aaaaaa',
+  SNOW = '#f9fafc'
 }
 
-const getColor = (elevation: number): number => {
+const getColor = (elevation: number): string => {
   if (elevation < -0.4) return Colors.SEA
   if (elevation < 0) return Colors.SEA_LOW
-  if (elevation < 0.03) return Colors.SAND
-  if (elevation < 0.22) return Colors.GRASS
+  if (elevation < 0.04) return Colors.SAND
+  if (elevation < 0.18) return Colors.GRASS
   if (elevation < 0.34) return Colors.ROCK
   return Colors.SNOW
-}
-
-interface GraphicsPool {
-  clear: () => void
-  reset: () => void
-  using: (fn: (g: PIXI.Graphics) => void) => void
-}
-
-const graphicsPool = (
-  container: PIXI.Container,
-  size = 10,
-  limit = 10000
-): GraphicsPool => {
-  let pool: PIXI.Graphics[] = []
-  let usage = 0
-
-  const clear = () => pool.map(g => g.clear())
-  const reset = () => {
-    usage = 0
-    pool.map(g => g.destroy())
-    pool = Array(size)
-      .fill(0)
-      .map(() => new PIXI.Graphics())
-    pool.map(g => container.addChild(g))
-  }
-  const using = (fn: (g: PIXI.Graphics) => void) => {
-    const i = Math.floor(++usage / limit)
-    const exhausted = i >= size
-    if (exhausted) reset()
-    if (usage % limit === 0) console.log('graphics_pool', { usage })
-    return fn(pool[exhausted ? 0 : i])
-  }
-  reset()
-  return { clear, reset, using }
 }
 
 export default Vue.extend({
@@ -68,78 +35,101 @@ export default Vue.extend({
       default: () => null
     }
   },
-  data() {
-    return {
-      container: null as Element | null,
-      app: null as PIXI.Application | null,
-      graphics: null as GraphicsPool | null
-    }
-  },
-  computed: {
-    _grid(): Grid | null {
-      return this.grid ? (this.grid as Grid) : null
-    }
-  },
+  data: () => ({
+    canvas: null as HTMLCanvasElement | null,
+    context: null as CanvasRenderingContext2D | null,
+    map: null as Grid | null
+  }),
   methods: {
     render() {
-      if (!this.container) return
-      if (!this.app) return
-      if (!this.graphics) return
-      if (!this._grid) return
+      if (!this.canvas) return
+      if (!this.context) return
+      if (!this.map) return
 
-      const { points, elevation } = this._grid
+      const { width, height } = this.canvas
+      const { points, elevation } = this.map
       const delaunay = Delaunay.from(points)
-      const voronoi = delaunay.voronoi([
-        0,
-        0,
-        this.container.clientWidth,
-        this.container.clientHeight
-      ])
+      const voronoi = delaunay.voronoi([0, 0, width, height])
 
-      this.graphics.clear()
+      this.context.fillStyle = Colors.SEA
+      this.context.fillRect(0, 0, width, height)
 
-      for (const i of points.keys()) {
-        const _polygon = voronoi.cellPolygon(i)
-        const polygon = _polygon.map(p => [p[0], p[1]] as Point)
-        this.renderCell(this.graphics, polygon, elevation[i])
+      const canvasTemp = document.createElement('canvas')
+      canvasTemp.width = width
+      canvasTemp.height = height
+
+      let i = 0
+      for (const cell of voronoi.cellPolygons()) {
+        const polygon = cell.map(p => [p[0], p[1]] as Point)
+        this.renderCell(canvasTemp, polygon, elevation[i++])
       }
+
+      this.context.drawImage(canvasTemp, 0, 0)
     },
-    renderCell(graphics: GraphicsPool, cell: Point[], elevation: number) {
-      if (!graphics) return
+    renderCell(canvas: HTMLCanvasElement, cell: Point[], elevation: number) {
       if (cell.length < 3) return
 
-      const flatPoints: number[] = cell.flat()
+      const context = canvas.getContext('2d', { alpha: false })
       const color = getColor(elevation)
 
-      if (color === Colors.SEA) return
+      if (!context) {
+        throw new Error('Unable to retreive canvas 2d context')
+      }
 
-      graphics.using(g => {
-        g.beginFill(color)
-        g.lineStyle(1, color, 1)
-        g.drawPolygon(flatPoints)
-        g.endFill()
-      })
+      // if (color === Colors.SEA) return
+
+      context.fillStyle = color
+
+      context.beginPath()
+      context.moveTo(cell[0][0], cell[0][1])
+
+      for (let i = 1; i < cell.length; i++) {
+        context.lineTo(cell[i][0], cell[i][1])
+      }
+
+      context.closePath()
+      context.fill()
     }
-  },
-  mounted() {
-    const container = (this.container = this.$refs.container as Element)
-    const app = (this.app = new PIXI.Application({
-      antialias: true,
-      width: container.clientWidth,
-      height: container.clientHeight,
-      backgroundColor: Colors.SEA
-    }))
-
-    this.graphics = graphicsPool(app.stage, 50, 1000)
-    container.appendChild(app.view)
   },
   watch: {
     grid: {
       immediate: true,
+      handler(value) {
+        this.map = value
+      }
+    },
+    map: {
+      immediate: true,
       handler() {
-        Vue.nextTick(() => this.render())
+        this.render()
       }
     }
+  },
+  mounted() {
+    const container = this.$refs.container as Element
+    const canvas = (this.canvas = this.$refs.canvas as HTMLCanvasElement)
+    const context = (this.context = this.canvas.getContext('2d', {
+      alpha: false
+    }))
+
+    if (!context) {
+      throw new Error('Unable to retreive canvas 2d context')
+    }
+
+    const handleResize = () => {
+      canvas.width = container.clientWidth
+      canvas.height = container.clientHeight
+      context.fillStyle = '#fff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.font = '50px Fira Code'
+      context.fillStyle = '#e54f47'
+      context.textAlign = 'center'
+      context.fillText('Click on generate', canvas.width / 2, canvas.height / 2)
+      this.render()
+    }
+
+    window.onresize = handleResize
+    handleResize()
   }
 })
 </script>

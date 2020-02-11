@@ -13,7 +13,6 @@ import Vue from 'vue'
 import SettingsOptions from './SettingsOptions.vue'
 import { GenerateOptions, generate } from '../generator'
 
-const generator = import('wasm-planet-generator')
 const randomSeed = () =>
   Math.random()
     .toString(36)
