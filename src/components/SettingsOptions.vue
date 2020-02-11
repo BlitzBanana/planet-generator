@@ -23,7 +23,7 @@
             label="Spacing"
             type="number"
             append-icon="grid_on"
-            min="10"
+            min="1"
             max="100"
             step="1"
             required
@@ -56,6 +56,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { GenerateOptions } from '../generator'
 
 const randomSeed = () =>
   Math.random()
@@ -76,13 +77,13 @@ export default Vue.extend({
         seed: randomSeed()
       })
     },
-    input(changes: any) {
+    input(changes: Partial<GenerateOptions>) {
       this.apply({
         ...this.value,
         ...changes
       })
     },
-    apply(options: any) {
+    apply(options: GenerateOptions) {
       this.$emit('input', options)
     }
   }

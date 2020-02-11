@@ -3,7 +3,7 @@
     <SettingsOptions v-model="options" />
     <v-card-actions>
       <v-spacer />
-      <v-btn small :loading="generating" @click="generate">Generate</v-btn>
+      <v-btn small text :loading="generating" @click="generate">Generate</v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -38,7 +38,7 @@ export default Vue.extend({
         seed: randomSeed(),
         width: 0,
         height: 0,
-        space: 15,
+        space: 10,
         chaos: 0.7
       } as GenerateOptions
     }
@@ -46,12 +46,9 @@ export default Vue.extend({
   methods: {
     async generate() {
       this.generating = true
-      const start = window.performance.now()
       const grid = await generate(this.options)
-      const end = window.performance.now()
       this.generating = false
       this.$emit('generated', grid)
-      console.log('Generated in ', end - start, 'ms')
     }
   },
   mounted() {

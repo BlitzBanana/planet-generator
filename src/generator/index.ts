@@ -1,40 +1,9 @@
-const generator = import('wasm-planet-generator')
+import { generateGrid } from './grid'
+import { fromGrid } from './map'
+import { GenerateOptions, Map, Cell } from './interfaces'
 
-// Represents two map coords
-export type Point = [number, number]
-
-export interface Grid {
-  points: Point[]
-  elevation: number[]
-  triangulation: {
-    triangles: number[]
-    halfedges: number[]
-    hull: number[]
-  }
-  subdivision: {
-    corners: Point[]
-    vectors: [number, number][]
-    cells: number[][]
-  }
-}
-
-export interface GenerateOptions {
-  seed: string
-  width: number
-  height: number
-  space: number
-  chaos: number
-}
-
-export const generate = async (options: GenerateOptions): Promise<Grid> => {
-  return generator.then(
-    wasm =>
-      wasm.generateGrid(
-        options.seed,
-        options.width,
-        options.height,
-        options.space,
-        options.chaos
-      ) as Grid
-  )
+export { GenerateOptions, Map, Cell }
+export const generate = async (options: GenerateOptions): Promise<Map> => {
+  const grid = await generateGrid(options)
+  return fromGrid(grid, options)
 }

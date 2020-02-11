@@ -6,8 +6,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { Delaunay } from 'd3-delaunay'
-import { Point, Grid } from '../generator'
+import { Map, Cell } from '../generator'
 
 enum Colors {
   SEA = '#223f6b',
@@ -22,7 +21,7 @@ const getColor = (elevation: number): string => {
   if (elevation < -0.4) return Colors.SEA
   if (elevation < 0) return Colors.SEA_LOW
   if (elevation < 0.04) return Colors.SAND
-  if (elevation < 0.18) return Colors.GRASS
+  if (elevation < 0.19) return Colors.GRASS
   if (elevation < 0.34) return Colors.ROCK
   return Colors.SNOW
 }
@@ -38,7 +37,7 @@ export default Vue.extend({
   data: () => ({
     canvas: null as HTMLCanvasElement | null,
     context: null as CanvasRenderingContext2D | null,
-    map: null as Grid | null
+    map: null as Map | null
   }),
   methods: {
     render() {
@@ -47,9 +46,7 @@ export default Vue.extend({
       if (!this.map) return
 
       const { width, height } = this.canvas
-      const { points, elevation } = this.map
-      const delaunay = Delaunay.from(points)
-      const voronoi = delaunay.voronoi([0, 0, width, height])
+      const { cells } = this.map
 
       this.context.clearRect(0, 0, width, height)
 
@@ -57,19 +54,19 @@ export default Vue.extend({
       canvasTemp.width = width
       canvasTemp.height = height
 
-      let i = 0
-      for (const cell of voronoi.cellPolygons()) {
-        const polygon = cell.map(p => [p[0], p[1]] as Point)
-        this.renderCell(canvasTemp, polygon, elevation[i++])
+      const start = window.performance.now()
+      for (const cell of cells) {
+        this.renderCell(canvasTemp, cell)
       }
-
       this.context.drawImage(canvasTemp, 0, 0)
+      const end = window.performance.now()
+      console.log('Rendered in ', end - start, 'ms')
     },
-    renderCell(canvas: HTMLCanvasElement, cell: Point[], elevation: number) {
-      if (cell.length < 3) return
+    renderCell(canvas: HTMLCanvasElement, cell: Cell) {
+      if (!cell) return
 
       const context = canvas.getContext('2d', { alpha: false })
-      const color = getColor(elevation)
+      const color = getColor(cell.elevation)
 
       if (!context) {
         throw new Error('Unable to retreive canvas 2d context')
@@ -78,10 +75,10 @@ export default Vue.extend({
       context.fillStyle = color
 
       context.beginPath()
-      context.moveTo(cell[0][0], cell[0][1])
+      context.moveTo(cell.polygon[0][0], cell.polygon[0][1])
 
-      for (let i = 1; i < cell.length; i++) {
-        context.lineTo(cell[i][0], cell[i][1])
+      for (let i = 1; i < cell.polygon.length; i++) {
+        context.lineTo(cell.polygon[i][0], cell.polygon[i][1])
       }
 
       context.closePath()
@@ -98,10 +95,7 @@ export default Vue.extend({
     map: {
       immediate: true,
       handler() {
-        const start = window.performance.now()
         this.render()
-        const end = window.performance.now()
-        console.log('Rendered in ', end - start, 'ms')
       }
     }
   },

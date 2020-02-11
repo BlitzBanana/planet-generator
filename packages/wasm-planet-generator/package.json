@@ -7,6 +7,6 @@
   "types": "./pkg/wasm_planet_generator.d.ts",
   "scripts": {
     "build": "wasm-pack build",
-    "postinstall": "npm run build"
+    "postinstall": "wasm-pack build --release"
   }
 }
