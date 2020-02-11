@@ -1344,7 +1344,7 @@
 
 "@types/d3-delaunay@^4.1.0":
   version "4.1.0"
-  resolved "https://registry.npmjs.org/@types/d3-delaunay/-/d3-delaunay-4.1.0.tgz#7b4ac0644d1fcf97c9335a59751ffc01a58a5c24"
+  resolved "https://registry.yarnpkg.com/@types/d3-delaunay/-/d3-delaunay-4.1.0.tgz#7b4ac0644d1fcf97c9335a59751ffc01a58a5c24"
   integrity sha512-KWZn+XNDLTtoR3zMpAI2go4PbRcazlOsOmlrmZAwYOgV7lYRx469ii78LLswRDI9J6jJmrlCl6Zo9ccoWFfrIw==
 
 "@types/eslint-visitor-keys@^1.0.0":
@@ -3636,7 +3636,7 @@ cyclist@^1.0.1:
 
 d3-delaunay@^5.2.1:
   version "5.2.1"
-  resolved "https://registry.npmjs.org/d3-delaunay/-/d3-delaunay-5.2.1.tgz#0c4b280eb00194986ac4a3df9c81d32bf216cb36"
+  resolved "https://registry.yarnpkg.com/d3-delaunay/-/d3-delaunay-5.2.1.tgz#0c4b280eb00194986ac4a3df9c81d32bf216cb36"
   integrity sha512-ZZdeJl6cKRyqYVFYK+/meXvWIrAvZsZTD7WSxl4OPXCmuXNgDyACAClAJHD63zL25TA+IJGURUNO7rFseNFCYw==
   dependencies:
     delaunator "4"

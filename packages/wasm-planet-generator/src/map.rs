@@ -2,24 +2,14 @@ extern crate serde_derive;
 
 use crate::points::{generate_points, perturb_points};
 use crate::elevation::elevate;
-use crate::triangulation::{triangulate, Triangulation};
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Point(pub f64, pub f64);
 
 #[derive(Serialize)]
 pub struct Map {
-  /// List of all Map points (cell centers)
   pub points: Vec<Point>,
-
-  /// List of all Map points elevation
-  pub elevation: Vec<f64>,
-
-  /// List of all Map points adjacencies (pointIndex, pointIndex, pointIndex)
-  pub triangulation: Triangulation,
-
-  /// List of all Map cells polygons
-  pub cells: Vec<Vec<Point>>
+  pub elevation: Vec<f64>
 }
 
 impl Map {
@@ -34,10 +24,8 @@ impl Map {
     let base_points = generate_points(width, height, spacing);
     let points = perturb_points(seed_value, base_points, spacing, chaos);
     let elevation = elevate(seed_value, &points, width, height);
-    let triangulation = triangulate(&points);
-    let cells = vec![];
 
-    Map { points, elevation, triangulation, cells }
+    Map { points, elevation }
   }
 }
 

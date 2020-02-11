@@ -1,10 +1,10 @@
 {
   "name": "wasm-planet-generator",
   "version": "1.0.0",
+  "license": "MIT",
+  "author": "Victor Rebiard--Crépin",
   "main": "./pkg/wasm_planet_generator.js",
   "types": "./pkg/wasm_planet_generator.d.ts",
-  "author": "Victor Rebiard--Crépin",
-  "license": "MIT",
   "scripts": {
     "build": "wasm-pack build"
   }

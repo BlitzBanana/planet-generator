@@ -7,7 +7,6 @@ use std::panic;
 
 mod map;
 mod points;
-mod triangulation;
 mod elevation;
 
 // API methods

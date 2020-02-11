@@ -5,6 +5,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import * as PIXI from 'pixi.js'
+import { Delaunay, Voronoi } from 'd3-delaunay'
 import { Point, Grid } from '../generator'
 
 const toChunks = <T extends unknown>(array: T[], size: number): T[][] => {
@@ -25,9 +26,9 @@ enum Colors {
 }
 
 const getColor = (elevation: number): number => {
-  if (elevation < -0.3) return Colors.SEA
+  if (elevation < -0.65) return Colors.SEA
   if (elevation < 0) return Colors.SEA_LOW
-  if (elevation < 0.03) return Colors.SAND
+  if (elevation < 0.04) return Colors.SAND
   if (elevation < 0.22) return Colors.GRASS
   if (elevation < 0.30) return Colors.ROCK
   return Colors.SNOW
@@ -88,15 +89,13 @@ export default Vue.extend({
       if (!this.graphics) return
       if (!this._grid) return
 
-      const { points, elevation, triangulation, cells } = this._grid
+      const { points, elevation } = this._grid
+      const delaunay = Delaunay.from(points)
+      const voronoi = delaunay.voronoi([0, 0, this.container.clientWidth, this.container.clientHeight])
 
       this.graphics.clear()
 
-      for (const index of points.keys()) {
-        this.renderPoint(this.graphics, points[index], elevation[index])
-      }
-
-      // for (const [i1, i2, i3] of toChunks(triangulation.triangles, 3)) {
+      // for (const [i1, i2, i3] of toChunks([...delaunay.triangles], 3)) {
       //   this.renderTriangle(this.graphics, [
       //     points[i1],
       //     points[i2],
@@ -104,8 +103,10 @@ export default Vue.extend({
       //   ])
       // }
 
-      for (const index of cells.keys()) {
-        this.renderCell(this.graphics, cells[index], elevation[index])
+      for (const i of points.keys()) {
+        const _polygon = voronoi.cellPolygon(i)
+        const polygon = _polygon.map(p => [p[0], p[1]] as Point)
+        this.renderCell(this.graphics, polygon, elevation[i])
       }
     },
     renderPoint(graphics: GraphicsPool, point: Point, elevation: number) {
@@ -122,6 +123,19 @@ export default Vue.extend({
         g.endFill()
       })
     },
+    renderCorner(graphics: GraphicsPool, point: Point, elevation: number) {
+      if (!graphics) return
+      if (!point) return
+
+      const [x, y] = point
+
+      graphics.using(g => {
+        g.lineStyle(0)
+        g.beginFill(0xffffff, 1)
+        g.drawCircle(x, y, 1)
+        g.endFill()
+      })
+    },
     renderTriangle(graphics: GraphicsPool, triangle: [Point, Point, Point]) {
       if (!graphics) return
       if (!triangle) return
@@ -129,8 +143,20 @@ export default Vue.extend({
       const flatPoints: number[] = triangle.flat()
 
       graphics.using(g => {
-        g.lineStyle(1, 0xb40135, 0.1)
+        g.lineStyle(1, 0xb40135, 0.3)
         g.drawPolygon(flatPoints)
+      })
+    },
+    renderLine(graphics: GraphicsPool, line: [Point, Point]) {
+      if (!graphics) return
+      if (!line) return
+
+      const [[x1, y1], [x2, y2]] = line
+
+      graphics.using(g => {
+        g.lineStyle(1, 0xb40135, 1)
+        g.moveTo(x1, y1)
+        g.lineTo(x2, y2)
       })
     },
     renderCell(graphics: GraphicsPool, cell: Point[], elevation: number) {
@@ -154,7 +180,7 @@ export default Vue.extend({
       antialias: true,
       width: container.clientWidth,
       height: container.clientHeight,
-      backgroundColor: 0x0000
+      backgroundColor: 0xffffff
     }))
 
     this.graphics = graphicsPool(app.stage, 50, 1000)

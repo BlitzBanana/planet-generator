@@ -6,11 +6,15 @@ export type Point = [number, number]
 export interface Grid {
   points: Point[]
   elevation: number[]
-  cells: Point[][]
   triangulation: {
-    triangles: number[],
-    halfedges: number[],
+    triangles: number[]
+    halfedges: number[]
     hull: number[]
+  }
+  subdivision: {
+    corners: Point[]
+    vectors: [number, number][]
+    cells: number[][]
   }
 }
 
