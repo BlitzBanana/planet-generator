@@ -1481,11 +1481,9 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   points
     .iter()
     .map(|point| {
-        let x = point.0;
-        let y = point.1;
-        let current_y = y_bounds.0 + y_step * y as f64;
-        let current_x = x_bounds.0 + x_step * x as f64;
-        unscaledFinalPlanet.get([current_y, current_x, 0.0])
+        let x = x_bounds.0 + x_step * point.0 as f64;
+        let y = y_bounds.0 + y_step * point.1 as f64;
+        unscaledFinalPlanet.get([x, y, 0.0])
     })
     .collect::<Vec<f64>>()
 }
