@@ -12,7 +12,7 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
 
   /// Frequency of the planet's continents. Higher frequency produces
   /// smaller, more numerous continents. This value is measured in radians.
-  const CONTINENT_FREQUENCY: f64 = 1.0;
+  const CONTINENT_FREQUENCY: f64 = 0.4;
 
   /// Lacunarity of the planet's continents. Changing this value produces
   /// slightly different continents. For the best results, this value should
@@ -1599,4 +1599,10 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
     .iter()
     .map(|point| noise_map.get_value(point.0 as usize, point.1 as usize))
     .collect::<Vec<f64>>()
+
+  // This does not work, I'm probably not understanding value generation
+  // points
+  //   .iter()
+  //   .map(|point| unscaledFinalPlanet.get([point.0, point.1, 0.0]))
+  //   .collect::<Vec<f64>>()
 }
