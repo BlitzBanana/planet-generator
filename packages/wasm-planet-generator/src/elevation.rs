@@ -3,7 +3,8 @@ extern crate noise;
 
 use crate::map::Point;
 use noise::*;
-use noise::utils::*;
+
+// from https://github.com/Razaekel/noise-rs/blob/develop/examples/complexplanet.rs
 
 #[allow(non_snake_case)]
 pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f64> {
@@ -870,11 +871,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // group.
   let badlandsTerrain = Cache::new(badlandsTerrain_ma);
 
-  //    debug::render_noise_module("complexplanet_images/12_2_badlandsTerrain.png",
-  //                               &badlandsTerrain,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // ////////////////////////////////////////////////////////////////////////
   // Function group: river positions
@@ -1150,12 +1146,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // entire scaled-badlands-terrain group.
   let scaledBadlandsTerrain = Cache::new(scaledBadlandsTerrain_sb);
 
-  //    debug::render_noise_module("complexplanet_images/17_0_scaledBadlandsTerrain\
-  //    .png",
-  //                               &scaledBadlandsTerrain,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function group: final planet
@@ -1184,12 +1174,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .add_control_point(SHELF_LEVEL)
       .add_control_point(1.0);
 
-  //    debug::render_noise_module("complexplanet_images/18_0_continentalShelf_te\
-  //    .png",
-  //                               &continentalShelf_te,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Clamped-sea-bottom module]: This clamping module clamps the output
   // value from the shelf-creator module so that its possible range is from
@@ -1197,12 +1181,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // is only concerned about the oceans.
   let continentalShelf_cl = Clamp::new(&continentalShelf_te).set_bounds(-0.75, SEA_LEVEL);
 
-  //    debug::render_noise_module("complexplanet_images/18_1_continentalShelf_cl\
-  //    .png",
-  //                               &continentalShelf_cl,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 3: [Oceanic-trench-basis module]: This ridged-multifractal-noise function
   // generates some coherent noise that will be used to generate the oceanic
@@ -1213,12 +1191,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .set_lacunarity(CONTINENT_LACUNARITY)
       .set_octaves(16);
 
-  //    debug::render_noise_module("complexplanet_images/18_2_continentalShelf_rm\
-  //    .png",
-  //                               &continentalShelf_rm,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 4: [Oceanic-trench module]: This scale/bias module inverts the ridges
   // from the oceanic-trench-basis-module so that the ridges become trenches.
@@ -1228,12 +1200,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .set_scale(-0.125)
       .set_bias(-0.125);
 
-  //    debug::render_noise_module("complexplanet_images/18_3_continentalShelf_sb\
-  //    .png",
-  //                               &continentalShelf_sb,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 5: [Shelf-and-trenches module]: This addition module adds the oceanic
   // trenches to the clamped-sea-bottom module.
@@ -1243,11 +1209,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   //    and-trenches module.
   let continentalShelf = Cache::new(continentalShelf_ad);
 
-  //    debug::render_noise_module("complexplanet_images/18_4_continentalShelf.png",
-  //                               &continentalShelf,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function group: base continent elevations (3 noise functions)
@@ -1267,12 +1228,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .set_scale(CONTINENT_HEIGHT_SCALE)
       .set_bias(0.0);
 
-  //    debug::render_noise_module("complexplanet_images/19_0_baseContinentElev_sb\
-  //    .png",
-  //                               &baseContinentElev_sb,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Base-continent-with-oceans module]: This selector module applies the
   // elevations of the continental shelves to the base elevations of the
@@ -1289,12 +1244,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // base-continent-with-oceans module.
   let baseContinentElev = Cache::new(baseContinentElev_se);
 
-  //    debug::render_noise_module("complexplanet_images/19_1_baseContinentElev\
-  //    .png",
-  //                               &baseContinentElev,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function subgroup: continents with plains (2 noise functions)
@@ -1315,12 +1264,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // continents-with-plains module.
   let continentsWithPlains = Cache::new(continentsWithPlains_ad);
 
-  //    debug::render_noise_module("complexplanet_images/20_0_continentsWithPlains\
-  //    .png",
-  //                               &continentsWithPlains,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function subgroup: continents with hills (3 noise functions)
@@ -1336,12 +1279,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // 1: [Continents-with-hills module]: This addition module adds the scaled-
   // hilly-terrain group to the base-continent-elevation subgroup.
   let continentsWithHills_ad = Add::new(&baseContinentElev, &scaledHillyTerrain);
-
-  //    debug::render_noise_module("complexplanet_images/21_0_continentsWithHills_ad.png",
-  //                               &continentsWithHills_ad,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Select-high-elevations module]: This selector module ensures that the
   // hills only appear at higher elevations. It does this by selecting the
@@ -1361,12 +1298,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // select-high-elevations module.
   let continentsWithHills = Cache::new(continentsWithHills_se);
 
-  //    debug::render_noise_module("complexplanet_images/21_1_continentsWithHills\
-  //    .png",
-  //                               &continentsWithHills,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function subgroup: continents with mountains (5 noise functions)
@@ -1384,11 +1315,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // subgroup.
   let continentsWithMountains_ad0 = Add::new(&baseContinentElev, &scaledMountainousTerrain);
 
-  //    debug::render_noise_module("complexplanet_images/22_0_continentsWithMountains_ad0.png",
-  //                               &continentsWithMountains_ad0,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Increase-mountain-heights module]: This curve module applies a curve
   // to the output value from the continent-definition group. This modified
@@ -1401,11 +1327,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .add_control_point(1.0 - MOUNTAINS_AMOUNT, 0.0625)
       .add_control_point(1.0, 0.2500);
 
-  //    debug::render_noise_module("complexplanet_images/22_1_continentsWithMountains_cu.png",
-  //                               &continentsWithMountains_cu,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 3: [Add-increased-mountain-heights module]: This addition module adds the
   // increased-mountain-heights module to the continents-and-mountains module.
@@ -1413,11 +1334,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   let continentsWithMountains_ad1 =
       Add::new(&continentsWithMountains_ad0, &continentsWithMountains_cu);
 
-  //    debug::render_noise_module("complexplanet_images/22_2_continentsWithMountains_ad1.png",
-  //                               &continentsWithMountains_ad1,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 4: [Select-high-elevations module]: This selector module ensures that
   // mountains only appear at higher elevations. It does this by selecting the
@@ -1438,11 +1354,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // select-high-elevations module.
   let continentsWithMountains = Cache::new(continentsWithMountains_se);
 
-  //    debug::render_noise_module("complexplanet_images/22_3_continentsWithMountains.png",
-  //                               &continentsWithMountains,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function subgroup: continents with badlands (5 noise functions)
@@ -1465,22 +1376,12 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .set_lacunarity(CONTINENT_LACUNARITY)
       .set_octaves(2);
 
-  //    debug::render_noise_module("complexplanet_images/23_0_continentsWithBadlands_bm.png",
-  //                               &continentsWithBadlands_bm,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Continents-and-badlands module]:  This addition module adds the
   // scaled-badlands-terrain group to the base-continent-elevation
   // subgroup.
   let continentsWithBadlands_ad = Add::new(&baseContinentElev, &scaledBadlandsTerrain);
 
-  //    debug::render_noise_module("complexplanet_images/23_1_continentsWithBadlands_ad.png",
-  //                               &continentsWithBadlands_ad,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 3: [Select-badlands-positions module]: This selector module places
   // badlands at random spots on the continents based on the BasicMulti noise
@@ -1499,11 +1400,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   .set_bounds(1.0 - BADLANDS_AMOUNT, 1001.0 - BADLANDS_AMOUNT)
   .set_falloff(0.25);
 
-  //    debug::render_noise_module("complexplanet_images/23_2_continentsWithBadlands_se.png",
-  //                               &continentsWithBadlands_se,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 4: [Apply-badlands module]: This maximum-value module causes the badlands
   // to "poke out" from the rest of the terrain. It does this by ensuring
@@ -1517,11 +1413,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   //    apply-badlands module.
   let continentsWithBadlands = Cache::new(continentsWithBadlands_ma);
 
-  //    debug::render_noise_module("complexplanet_images/23_3_continentsWithBadlands.png",
-  //                               &continentsWithBadlands,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // /////////////////////////////////////////////////////////////////////////
   // Function subgroup: continents with rivers (4 noise functions)
@@ -1541,11 +1432,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
       .set_scale(RIVER_DEPTH / 2.0)
       .set_bias(-RIVER_DEPTH / 2.0);
 
-  //    debug::render_noise_module("complexplanet_images/24_0_continentsWithRivers_sb.png",
-  //                               &continentsWithRivers_sb,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 2: [Add-rivers-to-continents module]: This addition module adds the
   // rivers to the continents-with-badlands subgroup. Because the scaled-
@@ -1553,11 +1439,6 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   // carves the rivers out of the terrain.
   let continentsWithRivers_ad = Add::new(&continentsWithBadlands, &continentsWithRivers_sb);
 
-  //    debug::render_noise_module("complexplanet_images/24_1_continentsWithRivers_ad.png",
-  //                               &continentsWithRivers_ad,
-  //                               1024,
-  //                               1024,
-  //                               1000);
 
   // 3: [Blended-rivers-to-continents module]: This selector module outputs
   // deep rivers near sea level and shallower rivers in higher terrain.  It
@@ -1589,20 +1470,22 @@ pub fn elevate(seed: u64, points: &Vec<Point>, width: f64, height: f64) -> Vec<f
   //    continent-with-rivers subgroup.
   let unscaledFinalPlanet = Cache::new(continentsWithRivers);
 
-  let noise_map = PlaneMapBuilder::new(&unscaledFinalPlanet)
-    .set_size(width as usize, height as usize)
-    .set_x_bounds(-2.0, 2.0)
-    .set_y_bounds(-2.0, 2.0)
-    .build();
+  // Let's only generate the points that i'm interested in, instead of generating the whole NoseMap
+  let x_bounds = Point(-2.0, 2.0);
+  let y_bounds = Point(-2.0, 2.0);
+  let x_extent = x_bounds.1 - x_bounds.0;
+  let y_extent = y_bounds.1 - y_bounds.0;
+  let x_step = x_extent / width as f64;
+  let y_step = y_extent / height as f64;
 
   points
     .iter()
-    .map(|point| noise_map.get_value(point.0 as usize, point.1 as usize))
+    .map(|point| {
+        let x = point.0;
+        let y = point.1;
+        let current_y = y_bounds.0 + y_step * y as f64;
+        let current_x = x_bounds.0 + x_step * x as f64;
+        unscaledFinalPlanet.get([current_y, current_x, 0.0])
+    })
     .collect::<Vec<f64>>()
-
-  // This does not work, I'm probably not understanding value generation
-  // points
-  //   .iter()
-  //   .map(|point| unscaledFinalPlanet.get([point.0, point.1, 0.0]))
-  //   .collect::<Vec<f64>>()
 }

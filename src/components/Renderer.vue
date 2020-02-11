@@ -51,8 +51,7 @@ export default Vue.extend({
       const delaunay = Delaunay.from(points)
       const voronoi = delaunay.voronoi([0, 0, width, height])
 
-      this.context.fillStyle = Colors.SEA
-      this.context.fillRect(0, 0, width, height)
+      this.context.clearRect(0, 0, width, height)
 
       const canvasTemp = document.createElement('canvas')
       canvasTemp.width = width
@@ -75,8 +74,6 @@ export default Vue.extend({
       if (!context) {
         throw new Error('Unable to retreive canvas 2d context')
       }
-
-      // if (color === Colors.SEA) return
 
       context.fillStyle = color
 
@@ -101,7 +98,10 @@ export default Vue.extend({
     map: {
       immediate: true,
       handler() {
+        const start = window.performance.now()
         this.render()
+        const end = window.performance.now()
+        console.log('Rendered in ', end - start, 'ms')
       }
     }
   },
@@ -119,12 +119,6 @@ export default Vue.extend({
     const handleResize = () => {
       canvas.width = container.clientWidth
       canvas.height = container.clientHeight
-      context.fillStyle = '#fff'
-      context.fillRect(0, 0, canvas.width, canvas.height)
-      context.font = '50px Fira Code'
-      context.fillStyle = '#e54f47'
-      context.textAlign = 'center'
-      context.fillText('Click on generate', canvas.width / 2, canvas.height / 2)
       this.render()
     }
 

@@ -38,9 +38,8 @@ export default Vue.extend({
         seed: randomSeed(),
         width: 0,
         height: 0,
-        space: 30,
-        chaos: 0.5,
-        noise: 1
+        space: 15,
+        chaos: 0.7
       } as GenerateOptions
     }
   },
@@ -54,6 +53,9 @@ export default Vue.extend({
       this.$emit('generated', grid)
       console.log('Generated in ', end - start, 'ms')
     }
+  },
+  mounted() {
+    this.generate()
   },
   watch: {
     height: {
